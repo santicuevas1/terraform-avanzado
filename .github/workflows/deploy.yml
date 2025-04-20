@@ -18,11 +18,7 @@ jobs:
           SERVICES: s3,lambda,dynamodb
           DEBUG: 1
           DATA_DIR: /tmp/localstack/data
-        options: >-
-          --health-cmd "curl -s http://localhost:4566/_localstack/health | grep '\"services\": {\"s3\": \"running\"}'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        # 🔁 Quitamos el healthcheck que fallaba
 
     steps:
       - name: Checkout code
@@ -33,11 +29,15 @@ jobs:
         with:
           terraform_version: '1.4.6'
 
-      - name: Configure AWS Credentials (Fake)
+      - name: Configure fake AWS credentials for LocalStack
         run: |
+          mkdir -p ~/.aws
           echo "[default]" > ~/.aws/credentials
           echo "aws_access_key_id = test" >> ~/.aws/credentials
           echo "aws_secret_access_key = test" >> ~/.aws/credentials
+
+      - name: Esperar que LocalStack se inicie
+        run: sleep 30
 
       - name: Terraform Init
         run: terraform init
